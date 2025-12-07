@@ -57,8 +57,12 @@ WORKDIR /app
 # Install Python dependencies using virtual environment (PEP 668 compliance)
 COPY requirements.txt .
 RUN python3 -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+    /opt/venv/bin/pip install --no-cache-dir --upgrade pip wheel setuptools
+
+# Install heavy dependencies first (helps with CI memory limits)
+RUN /opt/venv/bin/pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+RUN /opt/venv/bin/pip install --no-cache-dir sentence-transformers faiss-cpu
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Add venv to PATH
 ENV PATH="/opt/venv/bin:$PATH"
