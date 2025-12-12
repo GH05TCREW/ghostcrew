@@ -76,7 +76,7 @@ async def web_search(arguments: dict, runtime: "Runtime") -> str:
 def _format_results(query: str, data: dict) -> str:
     """
     Format Tavily results for LLM consumption.
-    
+
     Returns a lean format with summary + titles + URLs only.
     Content snippets are excluded to prevent LLM from regurgitating
     noisy web scrapes in its response.

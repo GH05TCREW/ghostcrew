@@ -20,7 +20,7 @@ from textual.containers import (
     Vertical,
 )
 from textual.reactive import reactive
-from textual.screen import ModalScreen, Screen
+from textual.screen import ModalScreen
 from textual.scrollbar import ScrollBar, ScrollBarRender
 from textual.timer import Timer
 from textual.widgets import Button, Input, Static, Tree
