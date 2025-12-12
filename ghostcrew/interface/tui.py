@@ -76,85 +76,6 @@ def wrap_text_lines(text: str, width: int = 80) -> List[str]:
             )
             result.extend(wrapped if wrapped else [""])
     return result
-    return result
-
-
-# ASCII Art from utils.py
-ASCII_BANNER = r"""
-         ('-. .-.               .-')    .-') _            _  .-')     ('-.    (`\ .-') /`
-        ( OO )  /              ( OO ). (  OO) )          ( \( -O )  _(  OO)    `.( OO ),'
-  ,----.    ,--. ,--. .-'),-----. (_)---\_)/     '._  .-----. ,------. (,------.,--./  .--.
- '  .-./-') |  | |  |( OO'  .-.  '/    _ | |'--...__)'  .--./ |   /`. ' |  .---'|      |  |
- |  |_( O- )|   .|  |/   |  | |  |\  :` `. '--.  .--'|  |('-. |  /  | | |  |    |  |   |  |,
- |  | .--, \|       |\_) |  |\|  | '..`''.)   |  |  /_) |OO  )|  |_.' |(|  '--. |  |.'.|  |_)
-(|  | '. (_/|  .-.  |  \ |  | |  |.-._)   \   |  |  ||  |`-'| |  .  '.' |  .--' |         |
- |  '--'  | |  | |  |   `'  '-'  '\       /   |  | (_'  '--'\ |  |\  \  |  `---.|   ,'.   |
-  `------'  `--' `--'     `-----'  `-----'    `--'    `-----' `--' '--' `------''--'   '--'
-"""
-
-
-# ----- Splash Screen -----
-
-
-class SplashScreen(Screen):
-    """Animated splash screen with GhostCrew branding"""
-
-    BINDINGS = [
-        Binding("enter", "dismiss", "Continue"),
-        Binding("escape", "dismiss", "Skip"),
-    ]
-
-    CSS = """
-    SplashScreen {
-        background: #0a0a0a;
-    }
-
-    #splash-container {
-        width: 100%;
-        height: 100%;
-        align: center middle;
-    }
-
-    #splash-inner {
-        width: 96;
-        height: auto;
-        align: center middle;
-    }
-
-    #splash-logo {
-        width: 96;
-        color: #d4d4d4;
-        text-style: bold;
-    }
-
-    #splash-tagline {
-        width: 96;
-        text-align: center;
-        margin-top: 1;
-        color: #6b6b6b;
-    }
-
-    #splash-prompt {
-        width: 96;
-        text-align: center;
-        margin-top: 2;
-        color: #525252;
-    }
-    """
-
-    def compose(self) -> ComposeResult:
-        yield Container(
-            Container(
-                Static(ASCII_BANNER, id="splash-logo"),
-                Static("AI Penetration Testing Agents  v0.2.0", id="splash-tagline"),
-                Static("Press ENTER to continue...", id="splash-prompt"),
-                id="splash-inner",
-            ),
-            id="splash-container",
-        )
-
-    def action_dismiss(self) -> None:
-        self.app.pop_screen()
 
 
 # ----- Help Screen -----
@@ -710,10 +631,6 @@ class GhostCrewTUI(App):
 
     async def on_mount(self) -> None:
         """Initialize on mount"""
-        # Show splash
-        await self.push_screen(SplashScreen())
-
-        # Start initialization
         self._initialize_agent()
 
     @work(thread=False)

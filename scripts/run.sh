@@ -16,7 +16,6 @@ fi
 # Parse arguments
 MODE="cli"
 TARGET=""
-VPN_CONFIG=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,10 +27,6 @@ while [[ $# -gt 0 ]]; do
             TARGET="$2"
             shift 2
             ;;
-        --vpn)
-            VPN_CONFIG="$2"
-            shift 2
-            ;;
         --help)
             echo "GhostCrew - AI Penetration Testing"
             echo ""
@@ -40,7 +35,6 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --tui              Run in TUI mode"
             echo "  --target <url>     Set initial target"
-            echo "  --vpn <config>     Connect to VPN before starting"
             echo "  --help             Show this help message"
             exit 0
             ;;
@@ -50,13 +44,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-# Connect to VPN if specified
-if [ -n "$VPN_CONFIG" ]; then
-    echo "Connecting to VPN..."
-    sudo openvpn --config "$VPN_CONFIG" --daemon
-    sleep 5
-fi
 
 # Build command
 CMD="python -m ghostcrew"

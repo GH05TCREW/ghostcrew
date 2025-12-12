@@ -3,57 +3,53 @@
 
 set -e
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}GhostCrew${NC} - AI Penetration Testing"
+echo "=================================================================="
+echo "                        GHOSTCREW"
+echo "                  AI Penetration Testing"
+echo "=================================================================="
 echo ""
 
 # Check Python version
-echo -e "${YELLOW}Checking Python version...${NC}"
+echo "Checking Python version..."
 python_version=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
 required_version="3.10"
 
 if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
-    echo -e "${RED}Error: Python $required_version or higher is required (found $python_version)${NC}"
+    echo "Error: Python $required_version or higher is required (found $python_version)"
     exit 1
 fi
-echo -e "${GREEN}✓ Python $python_version${NC}"
+echo "[OK] Python $python_version"
 
 # Create virtual environment
-echo -e "${YELLOW}Creating virtual environment...${NC}"
+echo "Creating virtual environment..."
 if [ ! -d "venv" ]; then
     python3 -m venv venv
-    echo -e "${GREEN}✓ Virtual environment created${NC}"
+    echo "[OK] Virtual environment created"
 else
-    echo -e "${GREEN}✓ Virtual environment exists${NC}"
+    echo "[OK] Virtual environment exists"
 fi
 
 # Activate virtual environment
-echo -e "${YELLOW}Activating virtual environment...${NC}"
+echo "Activating virtual environment..."
 source venv/bin/activate
 
 # Upgrade pip
-echo -e "${YELLOW}Upgrading pip...${NC}"
+echo "Upgrading pip..."
 pip install --upgrade pip
 
 # Install dependencies
-echo -e "${YELLOW}Installing dependencies...${NC}"
+echo "Installing dependencies..."
 pip install -e ".[all]"
-echo -e "${GREEN}✓ Dependencies installed${NC}"
+echo "[OK] Dependencies installed"
 
 # Install playwright browsers
-echo -e "${YELLOW}Installing Playwright browsers...${NC}"
+echo "Installing Playwright browsers..."
 playwright install chromium
-echo -e "${GREEN}✓ Playwright browsers installed${NC}"
+echo "[OK] Playwright browsers installed"
 
 # Create .env file if not exists
 if [ ! -f ".env" ]; then
-    echo -e "${YELLOW}Creating .env file...${NC}"
+    echo "Creating .env file..."
     cat > .env << EOF
 # GhostCrew Configuration
 # Add your API keys here
@@ -73,25 +69,25 @@ GHOSTCREW_DEBUG=false
 # Max Iterations
 GHOSTCREW_MAX_ITERATIONS=50
 EOF
-    echo -e "${GREEN}✓ .env file created${NC}"
-    echo -e "${YELLOW}⚠️  Please edit .env and add your API keys${NC}"
+    echo "[OK] .env file created"
+    echo "[!] Please edit .env and add your API keys"
 fi
 
 # Create loot directory for reports
 mkdir -p loot
-echo -e "${GREEN}✓ Loot directory created${NC}"
+echo "[OK] Loot directory created"
 
 echo ""
-echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Setup complete!${NC}"
+echo "=================================================================="
+echo "Setup complete!"
 echo ""
-echo -e "To get started:"
-echo -e "  1. Edit ${YELLOW}.env${NC} and add your API keys"
-echo -e "  2. Activate the virtual environment: ${YELLOW}source venv/bin/activate${NC}"
-echo -e "  3. Run GhostCrew: ${YELLOW}ghostcrew${NC} or ${YELLOW}python -m ghostcrew${NC}"
+echo "To get started:"
+echo "  1. Edit .env and add your API keys"
+echo "  2. Activate the virtual environment: source venv/bin/activate"
+echo "  3. Run GhostCrew: ghostcrew or python -m ghostcrew"
 echo ""
-echo -e "For Docker usage:"
-echo -e "  ${YELLOW}docker-compose up ghostcrew${NC}"
-echo -e "  ${YELLOW}docker-compose --profile kali up ghostcrew-kali${NC}"
+echo "For Docker usage:"
+echo "  docker-compose up ghostcrew"
+echo "  docker-compose --profile kali up ghostcrew-kali"
 echo ""
-echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo "=================================================================="
