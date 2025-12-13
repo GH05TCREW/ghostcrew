@@ -57,6 +57,7 @@ DEFAULT_MAX_TOKENS = 4096
 
 # Agent Defaults
 DEFAULT_MAX_ITERATIONS = int(os.environ.get("GHOSTCREW_MAX_ITERATIONS", "50"))
+WORKER_MAX_ITERATIONS = int(os.environ.get("GHOSTCREW_WORKER_MAX_ITERATIONS", "10"))
 
 # File Extensions
 KNOWLEDGE_TEXT_EXTENSIONS = [".txt", ".md"]

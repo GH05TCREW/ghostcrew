@@ -109,16 +109,20 @@ class WorkerPool:
         worker_runtime = LocalRuntime()
         await worker_runtime.start()
 
+        from ...config.constants import WORKER_MAX_ITERATIONS
+
         agent = GhostCrewAgent(
             llm=self.llm,
             tools=self.tools,
             runtime=worker_runtime,  # Use isolated runtime
             target=self.target,
             rag_engine=self.rag_engine,
+            max_iterations=WORKER_MAX_ITERATIONS,
         )
 
         try:
             final_response = ""
+            hit_max_iterations = False
             async for response in agent.agent_loop(worker.task):
                 # Track tool calls
                 if response.tool_calls:
@@ -136,19 +140,34 @@ class WorkerPool:
                 # Capture final response (text without tool calls)
                 if response.content and not response.tool_calls:
                     final_response = response.content
+                
+                # Check if max iterations was hit
+                if response.metadata and response.metadata.get("max_iterations_reached"):
+                    hit_max_iterations = True
 
             worker.result = final_response or "No findings."
-            worker.status = AgentStatus.COMPLETE
             worker.completed_at = time.time()
             self._results[worker.id] = worker.result
 
-            self._emit(
-                worker.id,
-                "complete",
-                {
-                    "summary": worker.result[:200],
-                },
-            )
+            if hit_max_iterations:
+                worker.status = AgentStatus.WARNING
+                self._emit(
+                    worker.id,
+                    "warning",
+                    {
+                        "summary": worker.result[:200],
+                        "reason": "Max iterations reached",
+                    },
+                )
+            else:
+                worker.status = AgentStatus.COMPLETE
+                self._emit(
+                    worker.id,
+                    "complete",
+                    {
+                        "summary": worker.result[:200],
+                    },
+                )
 
         except asyncio.CancelledError:
             worker.status = AgentStatus.CANCELLED

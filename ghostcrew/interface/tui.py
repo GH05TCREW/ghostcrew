@@ -1310,7 +1310,7 @@ Be concise. Use the actual data from notes."""
         wtype = worker.get("worker_type", "worker")
         findings = worker.get("findings", 0)
 
-        # Simple 3-state icons: working (braille), done (checkmark), error (X)
+        # 4-state icons: working (braille), done (checkmark), warning (!), error (X)
         if status in ("running", "pending"):
             # Animated braille spinner for all in-progress states
             icon = self._spinner_frames[self._spinner_frame % len(self._spinner_frames)]
@@ -1318,6 +1318,9 @@ Be concise. Use the actual data from notes."""
         elif status == "complete":
             icon = "✓"
             color = "#22c55e"  # green
+        elif status == "warning":
+            icon = "!"
+            color = "#f59e0b"  # amber/orange
         else:  # error, cancelled, unknown
             icon = "✗"
             color = "#ef4444"  # red
@@ -1359,6 +1362,14 @@ Be concise. Use the actual data from notes."""
                     worker_id, status="complete", findings=findings_count
                 )
                 self._crew_findings_count += findings_count
+                self._update_crew_stats()
+            elif event_type == "warning":
+                # Worker hit max iterations but has results
+                self._update_crew_worker(worker_id, status="warning")
+                reason = data.get("reason", "Partial completion")
+                worker = self._crew_workers.get(worker_id, {})
+                wtype = worker.get("worker_type", "worker")
+                self._add_system(f"[!] {wtype.upper()} stopped: {reason}")
                 self._update_crew_stats()
             elif event_type == "error":
                 self._update_crew_worker(worker_id, status="error")
@@ -1671,6 +1682,14 @@ Be concise. Use the actual data from notes."""
             self._is_running = False
 
     def action_quit_app(self) -> None:
+        # Stop any running tasks first
+        if self._is_running:
+            self._should_stop = True
+            if self._current_worker and not self._current_worker.is_finished:
+                self._current_worker.cancel()
+            if self._current_crew:
+                # Schedule cancel but don't wait - we're exiting
+                asyncio.create_task(self._cancel_crew())
         self.exit()
 
     def action_stop_agent(self) -> None:
@@ -1682,6 +1701,10 @@ Be concise. Use the actual data from notes."""
             if self._current_worker and not self._current_worker.is_finished:
                 self._current_worker.cancel()
 
+            # Cancel crew orchestrator if running
+            if self._current_crew:
+                asyncio.create_task(self._cancel_crew())
+
             # Clean up agent state to prevent stale tool responses
             if self.agent:
                 self.agent.cleanup_after_cancel()
@@ -1689,6 +1712,19 @@ Be concise. Use the actual data from notes."""
             # Reconnect MCP servers (they may be in a bad state after cancellation)
             if self.mcp_manager:
                 asyncio.create_task(self._reconnect_mcp_after_cancel())
+
+    async def _cancel_crew(self) -> None:
+        """Cancel crew orchestrator and all workers."""
+        try:
+            if self._current_crew:
+                await self._current_crew.cancel()
+                self._current_crew = None
+                # Mark all running workers as cancelled in the UI
+                for worker_id, worker in self._crew_workers.items():
+                    if worker.get("status") in ("running", "pending"):
+                        self._update_crew_worker(worker_id, status="cancelled")
+        except Exception:
+            pass  # Best effort
 
     async def _reconnect_mcp_after_cancel(self) -> None:
         """Reconnect MCP servers after cancellation to restore clean state."""

@@ -20,6 +20,7 @@ class AgentStatus(Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETE = "complete"
+    WARNING = "warning"  # Completed but hit max iterations
     ERROR = "error"
     CANCELLED = "cancelled"
 
