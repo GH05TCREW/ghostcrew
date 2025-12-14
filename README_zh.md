@@ -5,9 +5,7 @@
 # GHOSTCREW
 ### AI 渗透测试智能体
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt) [![版本](https://img.shields.io/badge/版本-0.2.0-orange.svg)](https://github.com/GH05TCREW/ghostcrew/releases) [![Stars](https://img.shields.io/github/stars/GH05TCREW/ghostcrew?style=social)](https://github.com/GH05TCREW/ghostcrew)
-
-[![Security](https://img.shields.io/badge/Security-渗透测试-red.svg)](https://github.com/GH05TCREW/ghostcrew) [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/GH05TCREW/ghostcrew)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.txt) [![版本](https://img.shields.io/badge/版本-0.2.0-orange.svg)](https://github.com/GH05TCREW/ghostcrew/releases) [![Security](https://img.shields.io/badge/Security-渗透测试-red.svg)](https://github.com/GH05TCREW/ghostcrew) [![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/GH05TCREW/ghostcrew)
 
 [🇺🇸 English](README.md) | [🇨🇳 中文文档](README_zh.md)
 
