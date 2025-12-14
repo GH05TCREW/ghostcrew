@@ -1001,6 +1001,27 @@ Be concise. Use the actual data from notes."""
             reports_dir = Path("loot/reports")
             reports_dir.mkdir(parents=True, exist_ok=True)
 
+            # Append Shadow Graph if available
+            try:
+                from ..knowledge.graph import ShadowGraph
+                from ..tools.notes import get_all_notes_sync
+
+                # Rehydrate graph from notes
+                graph = ShadowGraph()
+                notes = get_all_notes_sync()
+                if notes:
+                    graph.update_from_notes(notes)
+                    mermaid_code = graph.to_mermaid()
+
+                    if mermaid_code:
+                        report_content += (
+                            "\n\n## Attack Graph (Visual)\n\n```mermaid\n"
+                            + mermaid_code
+                            + "\n```\n"
+                        )
+            except Exception as e:
+                self._add_system(f"[!] Graph generation error: {e}")
+
             timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             report_path = reports_dir / f"report_{timestamp}.md"
             report_path.write_text(report_content, encoding="utf-8")
