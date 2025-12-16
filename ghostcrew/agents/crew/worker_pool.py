@@ -170,13 +170,21 @@ class WorkerPool:
             plan_summary = ""
             plan = getattr(worker_runtime, "plan", None)
             if plan and plan.steps:
-                completed_steps = [
-                    s for s in plan.steps if s.status == "complete" and s.result
-                ]
-                if completed_steps:
+                from ...tools.finish import StepStatus
+
+                # Include ALL steps regardless of status - skips and failures are valuable context
+                # Note: PlanStep stores failure/skip reasons in the 'result' field
+                steps_with_info = [s for s in plan.steps if s.result]
+                if steps_with_info:
                     summary_lines = []
-                    for s in completed_steps:
-                        summary_lines.append(f"- {s.description}: {s.result}")
+                    for s in steps_with_info:
+                        status_marker = {
+                            StepStatus.COMPLETE: "✓",
+                            StepStatus.SKIP: "⊘",
+                            StepStatus.FAIL: "✗",
+                        }.get(s.status, "·")
+                        info = s.result or "No details"
+                        summary_lines.append(f"{status_marker} {s.description}: {info}")
                     plan_summary = "\n".join(summary_lines)
 
             # Use plan summary if available, otherwise fallback to chat response
