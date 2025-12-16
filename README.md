@@ -138,6 +138,8 @@ GhostCrew includes prebuilt **attack playbooks** for black-box security testing.
 ghostcrew run -t example.com --playbook thp3_web
 ```
 
+![Playbook Demo](assets/playbook.gif)
+
 ## Tools
 
 GhostCrew includes built-in tools and supports MCP (Model Context Protocol) for extensibility.
