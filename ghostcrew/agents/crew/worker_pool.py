@@ -133,10 +133,26 @@ class WorkerPool:
                             worker.tools_used.append(tc.name)
                             self._emit(worker.id, "tool", {"tool": tc.name})
 
-                # Track tokens
+                # Track tokens (avoid double counting)
                 if response.usage:
                     total = response.usage.get("total_tokens", 0)
-                    if total > 0:
+                    is_intermediate = response.metadata.get("intermediate", False)
+                    has_tools = bool(response.tool_calls)
+
+                    # Same logic as CLI to avoid double counting
+                    should_count = False
+                    if is_intermediate:
+                        should_count = True
+                        worker.last_msg_intermediate = True
+                    elif has_tools:
+                        if not getattr(worker, "last_msg_intermediate", False):
+                            should_count = True
+                        worker.last_msg_intermediate = False
+                    else:
+                        should_count = True
+                        worker.last_msg_intermediate = False
+
+                    if should_count and total > 0:
                         self._emit(worker.id, "tokens", {"tokens": total})
 
                 # Capture final response (text without tool calls)
@@ -150,7 +166,22 @@ class WorkerPool:
                     if response.metadata.get("replan_impossible"):
                         is_infeasible = True
 
-            worker.result = final_response or "No findings."
+            # Prioritize structured results from the plan over chatty summaries
+            plan_summary = ""
+            plan = getattr(worker_runtime, "plan", None)
+            if plan and plan.steps:
+                completed_steps = [
+                    s for s in plan.steps if s.status == "complete" and s.result
+                ]
+                if completed_steps:
+                    summary_lines = []
+                    for s in completed_steps:
+                        summary_lines.append(f"- {s.description}: {s.result}")
+                    plan_summary = "\n".join(summary_lines)
+
+            # Use plan summary if available, otherwise fallback to chat response
+            worker.result = plan_summary or final_response or "No findings."
+
             worker.completed_at = time.time()
             self._results[worker.id] = worker.result
 

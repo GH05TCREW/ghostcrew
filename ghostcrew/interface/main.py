@@ -8,23 +8,69 @@ from .cli import run_cli
 from .tui import run_tui
 
 
-def parse_arguments() -> argparse.Namespace:
+def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="GhostCrew - AI Penetration Testing",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  ghostcrew                           Launch TUI
-  ghostcrew -t 192.168.1.1            Launch TUI with target
-  ghostcrew -n -t example.com         Non-interactive run
-  ghostcrew tools list                List available tools
-  ghostcrew mcp list                  List MCP servers
+  ghostcrew tui                              Launch TUI
+  ghostcrew tui -t 192.168.1.1               Launch TUI with target
+  ghostcrew run -t localhost --task "scan"   Headless run
+  ghostcrew tools list                       List available tools
+  ghostcrew mcp list                         List MCP servers
         """,
     )
 
+    parser.add_argument("--version", action="version", version="GhostCrew 0.2.0")
+
     # Subcommands
     subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    # Common arguments for runtime modes
+    runtime_parent = argparse.ArgumentParser(add_help=False)
+    runtime_parent.add_argument("--target", "-t", help="Target (IP, hostname, or URL)")
+    runtime_parent.add_argument(
+        "--model",
+        "-m",
+        default=DEFAULT_MODEL,
+        help="LLM model (set GHOSTCREW_MODEL in .env)",
+    )
+    runtime_parent.add_argument(
+        "--docker",
+        "-d",
+        action="store_true",
+        help="Run tools inside Docker container (requires Docker)",
+    )
+
+    # TUI subcommand
+    subparsers.add_parser(
+        "tui", parents=[runtime_parent], help="Launch TUI (Interactive Mode)"
+    )
+
+    # Run subcommand (Headless)
+    run_parser = subparsers.add_parser(
+        "run", parents=[runtime_parent], help="Run in headless mode"
+    )
+    run_parser.add_argument("task", nargs="+", help="Task to run")
+    run_parser.add_argument(
+        "--report",
+        "-r",
+        nargs="?",
+        const="auto",
+        help=(
+            "Generate report. "
+            "If used without value, auto-generates path under loot/reports/. "
+            "If omitted, no report is generated."
+        ),
+    )
+    run_parser.add_argument(
+        "--max-loops",
+        type=int,
+        default=50,
+        help="Max agent loops before stopping (default: 50)",
+    )
 
     # Tools subcommand
     tools_parser = subparsers.add_parser("tools", help="Manage tools")
@@ -51,7 +97,7 @@ Examples:
     mcp_add.add_argument("name", help="Server name")
     mcp_add.add_argument("command", help="Command to run (e.g., npx)")
     mcp_add.add_argument("args", nargs="*", help="Command arguments")
-    mcp_add.add_argument("--description", "-d", default="", help="Server description")
+    mcp_add.add_argument("--description", default="", help="Server description")
 
     # mcp remove
     mcp_remove = mcp_subparsers.add_parser("remove", help="Remove an MCP server")
@@ -61,54 +107,7 @@ Examples:
     mcp_test = mcp_subparsers.add_parser("test", help="Test MCP server connection")
     mcp_test.add_argument("name", help="Server name to test")
 
-    # Target option
-    parser.add_argument("--target", "-t", help="Target (IP, hostname, or URL)")
-
-    # Non-interactive mode
-    parser.add_argument(
-        "-n",
-        "--headless",
-        action="store_true",
-        help="Run without TUI (requires --target)",
-    )
-
-    # Task for non-interactive mode
-    parser.add_argument("--task", help="Task to run in non-interactive mode")
-
-    # Report output (saves to loot/reports/ by default)
-    parser.add_argument(
-        "--report",
-        "-r",
-        nargs="?",
-        const="auto",
-        help="Generate report (default: loot/reports/<target>_<timestamp>.md)",
-    )
-
-    # Max tool calls limit
-    parser.add_argument(
-        "--max", type=int, default=50, help="Max calls before stopping (default: 50)"
-    )
-
-    # Model options
-    parser.add_argument(
-        "--model",
-        "-m",
-        default=DEFAULT_MODEL,
-        help="LLM model (set GHOSTCREW_MODEL in .env)",
-    )
-
-    # Docker mode
-    parser.add_argument(
-        "--docker",
-        "-d",
-        action="store_true",
-        help="Run tools inside Docker container (requires Docker)",
-    )
-
-    # Version
-    parser.add_argument("--version", action="version", version="GhostCrew 0.2.0")
-
-    return parser.parse_args()
+    return parser, parser.parse_args()
 
 
 def handle_tools_command(args: argparse.Namespace):
@@ -242,7 +241,7 @@ def handle_mcp_command(args: argparse.Namespace):
 
 def main():
     """Main entry point."""
-    args = parse_arguments()
+    parser, args = parse_arguments()
 
     # Handle subcommands
     if args.command == "tools":
@@ -253,36 +252,55 @@ def main():
         handle_mcp_command(args)
         return
 
-    # Check model configuration
-    if not args.model:
-        print("Error: No model configured.")
-        print("Set GHOSTCREW_MODEL in .env file or use --model flag.")
-        print(
-            "Example: GHOSTCREW_MODEL=gpt-5 or GHOSTCREW_MODEL=claude-sonnet-4-20250514"
-        )
-        return
-
-    # Determine interface mode
-    if args.headless:
-        if not args.target:
-            print("Error: --target is required for headless mode")
+    if args.command == "run":
+        # Check model configuration
+        if not args.model:
+            print("Error: No model configured.")
+            print("Set GHOSTCREW_MODEL in .env file or use --model flag.")
+            print(
+                "Example: GHOSTCREW_MODEL=gpt-5 or GHOSTCREW_MODEL=claude-sonnet-4-20250514"
+            )
             return
+
+        if not args.target:
+            print("Error: --target is required for run mode")
+            return
+
+        # Join task arguments
+        task_description = " ".join(args.task)
+
         try:
             asyncio.run(
                 run_cli(
                     target=args.target,
                     model=args.model,
-                    task=args.task,
+                    task=task_description,
                     report=args.report,
-                    max_tools=args.max,
+                    max_loops=args.max_loops,
                     use_docker=args.docker,
                 )
             )
         except KeyboardInterrupt:
             print("\n[!] Interrupted by user.")
-    else:
-        # TUI doesn't need asyncio.run - it runs its own event loop
+        return
+
+    if args.command == "tui":
+        # Check model configuration
+        if not args.model:
+            print("Error: No model configured.")
+            print("Set GHOSTCREW_MODEL in .env file or use --model flag.")
+            print(
+                "Example: GHOSTCREW_MODEL=gpt-5 or GHOSTCREW_MODEL=claude-sonnet-4-20250514"
+            )
+            return
+
         run_tui(target=args.target, model=args.model, use_docker=args.docker)
+        return
+
+    # If no command provided, default to TUI
+    if args.command is None:
+        run_tui(target=None, model=DEFAULT_MODEL, use_docker=False)
+        return
 
 
 if __name__ == "__main__":

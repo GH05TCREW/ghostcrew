@@ -597,6 +597,7 @@ Call the create_plan tool with your steps."""
                 role="assistant",
                 content="\n".join(plan_display),
                 metadata={"auto_plan": True},
+                usage=response.usage,
             )
             self.conversation_history.append(plan_msg)
             return plan_msg

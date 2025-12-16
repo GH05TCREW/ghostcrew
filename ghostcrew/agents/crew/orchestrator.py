@@ -167,6 +167,12 @@ class CrewOrchestrator:
                     tools=crew_tools,
                 )
 
+                # Track tokens for orchestrator
+                if response.usage:
+                    total = response.usage.get("total_tokens", 0)
+                    if total > 0:
+                        yield {"phase": "tokens", "tokens": total}
+
                 # Check for tool calls first to determine if content is "thinking" or "final answer"
                 if response.tool_calls:
                     # If there are tool calls, the content is "thinking" (reasoning before action)

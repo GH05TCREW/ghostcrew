@@ -25,7 +25,7 @@ async def run_cli(
     model: str,
     task: str = None,
     report: str = None,
-    max_tools: int = 50,
+    max_loops: int = 50,
     use_docker: bool = False,
 ):
     """
@@ -36,7 +36,7 @@ async def run_cli(
         model: LLM model to use
         task: Optional task description
         report: Report path ("auto" for loot/reports/<target>_<timestamp>.md)
-        max_tools: Max tool calls before stopping
+        max_loops: Max agent loops before stopping
         use_docker: Run tools in Docker container
     """
     from ..agents.ghostcrew_agent import GhostCrewAgent
@@ -56,8 +56,8 @@ async def run_cli(
     start_text.append(f"{model}\n", style=GHOST_PRIMARY)
     start_text.append("Runtime: ", style=GHOST_SECONDARY)
     start_text.append(f"{'Docker' if use_docker else 'Local'}\n", style=GHOST_PRIMARY)
-    start_text.append("Max calls: ", style=GHOST_SECONDARY)
-    start_text.append(f"{max_tools}\n", style=GHOST_PRIMARY)
+    start_text.append("Max loops: ", style=GHOST_SECONDARY)
+    start_text.append(f"{max_loops}\n", style=GHOST_PRIMARY)
 
     task_msg = task or f"Perform a penetration test on {target}"
     start_text.append("Task: ", style=GHOST_SECONDARY)
@@ -122,9 +122,13 @@ async def run_cli(
     start_time = time.time()
     tool_count = 0
     iteration = 0
-    findings = []  # Store findings for report
+    findings_count = 0  # Count of notes/findings recorded
+    findings = []  # Store actual findings text
+    total_tokens = 0  # Track total token usage
+    messages = []  # Store agent messages
     tool_log = []  # Log of tools executed (ts, name, command, result, exit_code)
     last_content = ""
+    last_msg_intermediate = False  # Track if previous message was intermediate (to avoid double counting tokens)
     stopped_reason = None
 
     def print_status(msg: str, style: str = GHOST_DIM):
@@ -301,13 +305,13 @@ async def run_cli(
             return None
 
     async def print_summary(interrupted: bool = False):
-        nonlocal findings
+        nonlocal messages
 
-        # Generate summary if we don't have findings yet
-        if not findings and tool_log:
+        # Generate summary if we don't have messages yet
+        if not messages and tool_log:
             summary = await generate_summary()
             if summary:
-                findings.append(summary)
+                messages.append(summary)
 
         elapsed = int(time.time() - start_time)
         mins, secs = divmod(elapsed, 60)
@@ -321,14 +325,18 @@ async def run_cli(
         final_text.append(f"{status}\n\n", style=f"bold {GHOST_PRIMARY}")
         final_text.append("Duration: ", style=GHOST_DIM)
         final_text.append(f"{mins}m {secs}s\n", style=GHOST_SECONDARY)
-        final_text.append("Iterations: ", style=GHOST_DIM)
-        final_text.append(f"{iteration}\n", style=GHOST_SECONDARY)
+        final_text.append("Loops: ", style=GHOST_DIM)
+        final_text.append(f"{iteration}/{max_loops}\n", style=GHOST_SECONDARY)
         final_text.append("Tools: ", style=GHOST_DIM)
-        final_text.append(f"{tool_count}/{max_tools}\n", style=GHOST_SECONDARY)
+        final_text.append(f"{tool_count}\n", style=GHOST_SECONDARY)
 
-        if findings:
+        if total_tokens > 0:
+            final_text.append("Tokens: ", style=GHOST_DIM)
+            final_text.append(f"{total_tokens:,}\n", style=GHOST_SECONDARY)
+
+        if findings_count > 0:
             final_text.append("Findings: ", style=GHOST_DIM)
-            final_text.append(f"{len(findings)}", style=GHOST_SECONDARY)
+            final_text.append(f"{findings_count}", style=GHOST_SECONDARY)
 
         console.print()
         console.print(
@@ -339,12 +347,12 @@ async def run_cli(
             )
         )
 
-        # Show summary/findings
-        if findings:
+        # Show summary/messages only if it's new content (not just displayed)
+        if messages and messages[-1] != last_content:
             console.print()
             console.print(
                 Panel(
-                    Markdown(findings[-1]),
+                    Markdown(messages[-1]),
                     title=f"[{GHOST_PRIMARY}]Summary",
                     border_style=GHOST_BORDER,
                 )
@@ -359,6 +367,27 @@ async def run_cli(
         async for response in agent.agent_loop(task_msg):
             iteration += 1
 
+            # Track token usage
+            if response.usage:
+                usage = response.usage.get("total_tokens", 0)
+                is_intermediate = response.metadata.get("intermediate", False)
+                has_tools = bool(response.tool_calls)
+
+                # Logic to avoid double counting:
+                # 1. Intermediate messages (thinking) always count
+                # 2. Tool messages count ONLY if not preceded by intermediate message
+                if is_intermediate:
+                    total_tokens += usage
+                    last_msg_intermediate = True
+                elif has_tools:
+                    if not last_msg_intermediate:
+                        total_tokens += usage
+                    last_msg_intermediate = False
+                else:
+                    # Other messages (like plan)
+                    total_tokens += usage
+                    last_msg_intermediate = False
+
             # Show tool calls and results as they happen
             if response.tool_calls:
                 for i, call in enumerate(response.tool_calls):
@@ -366,6 +395,26 @@ async def run_cli(
                     name = getattr(call, "name", None) or getattr(
                         call.function, "name", "tool"
                     )
+
+                    # Track findings (notes tool)
+                    if name == "notes":
+                        findings_count += 1
+                        try:
+                            args = getattr(call, "arguments", None) or getattr(
+                                call.function, "arguments", "{}"
+                            )
+                            if isinstance(args, str):
+                                import json
+
+                                args = json.loads(args)
+                            if isinstance(args, dict):
+                                note_content = args.get("content", "") or args.get(
+                                    "note", ""
+                                )
+                                if note_content:
+                                    findings.append(note_content)
+                        except Exception:
+                            pass
 
                     elapsed = int(time.time() - start_time)
                     mins, secs = divmod(elapsed, 60)
@@ -427,7 +476,7 @@ async def run_cli(
 
                     # Metasploit-style output with better spacing
                     console.print()  # Blank line before each tool
-                    print_status(f"$ {name} ({tool_count}/{max_tools})", GHOST_ACCENT)
+                    print_status(f"$ {name} ({tool_count})", GHOST_ACCENT)
 
                     # Show command/args on separate indented line (truncated for display)
                     if command_text:
@@ -457,17 +506,10 @@ async def run_cli(
                                     f"         [{GHOST_DIM}][*] {result_line[:60]}...[/]"
                                 )
 
-                    # Check max tools limit
-                    if tool_count >= max_tools:
-                        stopped_reason = "max calls reached"
-                        console.print()
-                        print_status(f"Max calls limit reached ({max_tools})", "yellow")
-                        raise StopIteration()
-
             # Print assistant content immediately (analysis/findings)
             if response.content and response.content != last_content:
                 last_content = response.content
-                findings.append(response.content)
+                messages.append(response.content)
 
                 console.print()
                 console.print(
@@ -478,6 +520,13 @@ async def run_cli(
                     )
                 )
                 console.print()
+
+            # Check max loops limit
+            if iteration >= max_loops:
+                stopped_reason = "max loops reached"
+                console.print()
+                print_status(f"Max loops limit reached ({max_loops})", "yellow")
+                raise StopIteration()
 
         await print_summary(interrupted=False)
 
