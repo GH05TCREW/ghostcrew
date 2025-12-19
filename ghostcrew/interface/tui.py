@@ -1,5 +1,5 @@
 """
-GhostCrew TUI - Terminal User Interface
+PentestAgent TUI - Terminal User Interface
 """
 
 import asyncio
@@ -51,7 +51,7 @@ class CrewTree(Tree):
 
 
 if TYPE_CHECKING:
-    from ..agents.ghostcrew_agent import GhostCrewAgent
+    from ..agents.pa_agent import PentestAgentAgent
 
 
 def wrap_text_lines(text: str, width: int = 80) -> List[str]:
@@ -142,7 +142,7 @@ class HelpScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         yield Container(
-            Static("GhostCrew Help", id="help-title"),
+            Static("PentestAgent Help", id="help-title"),
             Static(self._get_help_text(), id="help-content"),
             Center(Button("Close", id="help-close")),
             id="help-container",
@@ -200,7 +200,7 @@ class ThinkingMessage(Static):
 class ToolMessage(Static):
     """Tool execution message"""
 
-    # Standard tool icon and color (ghost theme)
+    # Standard tool icon and color (pa theme)
     TOOL_ICON = "$"
     TOOL_COLOR = "#9a9a9a"  # spirit gray
 
@@ -262,7 +262,7 @@ class AssistantMessage(Static):
         text = Text()
         text.append("| ", style="#525252")
         text.append(">> ", style="#9a9a9a")
-        text.append("Ghost\n", style="bold #d4d4d4")
+        text.append("PentestAgent\n", style="bold #d4d4d4")
 
         # Wrap content - use 70 chars to account for sidebar + prefix
         for line in wrap_text_lines(self.message_content, width=70):
@@ -331,7 +331,7 @@ class StatusBar(Static):
         # Use fixed-width labels (pad dots to 4 chars so text doesn't jump)
         dots_padded = dots.ljust(4)
 
-        # Ghost theme status colors (muted, ethereal)
+        # PA theme status colors (muted, ethereal)
         status_map = {
             "idle": ("Ready", "#6b6b6b"),
             "initializing": (f"Initializing{dots_padded}", "#9a9a9a"),
@@ -366,11 +366,11 @@ class StatusBar(Static):
 # ----- Main TUI App -----
 
 
-class GhostCrewTUI(App):
-    """Main GhostCrew TUI Application"""
+class PentestAgentTUI(App):
+    """Main PentestAgent TUI Application"""
 
     # ═══════════════════════════════════════════════════════════
-    # GHOST THEME - Ethereal grays emerging from darkness
+    # PA THEME - Ethereal grays
     # ═══════════════════════════════════════════════════════════
     # Void:       #0a0a0a  (terminal black - the darkness)
     # Shadow:     #121212  (subtle surface)
@@ -559,7 +559,7 @@ class GhostCrewTUI(App):
         Binding("tab", "focus_next", "Next", show=False),
     ]
 
-    TITLE = "GhostCrew"
+    TITLE = "PentestAgent"
     SUB_TITLE = "AI Penetration Testing"
 
     def __init__(
@@ -575,7 +575,7 @@ class GhostCrewTUI(App):
         self.use_docker = use_docker
 
         # Agent components
-        self.agent: Optional["GhostCrewAgent"] = None
+        self.agent: Optional["PentestAgentAgent"] = None
         self.runtime = None
         self.mcp_manager = None
         self.all_tools = []
@@ -641,7 +641,7 @@ class GhostCrewTUI(App):
         try:
             import os
 
-            from ..agents.ghostcrew_agent import GhostCrewAgent
+            from ..agents.pa_agent import PentestAgentAgent
             from ..knowledge import RAGEngine
             from ..llm import LLM, ModelConfig
             from ..mcp import MCPManager
@@ -665,7 +665,7 @@ class GhostCrewTUI(App):
             if knowledge_path:
                 try:
                     # Determine embedding method: env var > auto-detect
-                    embeddings_setting = os.getenv("GHOSTCREW_EMBEDDINGS", "").lower()
+                    embeddings_setting = os.getenv("PENTESTAGENT_EMBEDDINGS", "").lower()
                     if embeddings_setting == "local":
                         use_local = True
                     elif embeddings_setting == "openai":
@@ -714,7 +714,7 @@ class GhostCrewTUI(App):
             self.all_tools = get_all_tools()
 
             # Agent
-            self.agent = GhostCrewAgent(
+            self.agent = PentestAgentAgent(
                 llm=llm,
                 tools=self.all_tools,
                 runtime=self.runtime,
@@ -732,7 +732,7 @@ class GhostCrewTUI(App):
 
             runtime_str = "Docker" if self.use_docker else "Local"
             self._add_system(
-                f"+ GhostCrew ready\n"
+                f"+ PentestAgent ready\n"
                 f"  Model: {self.model} | Tools: {len(self.all_tools)} | MCP: {mcp_server_count} | RAG: {rag_doc_count}\n"
                 f"  Runtime: {runtime_str} | Mode: Assist (use /agent or /crew for autonomous modes)"
             )
@@ -940,7 +940,7 @@ class GhostCrewTUI(App):
         notes = await get_all_notes()
         if not notes:
             self._add_system(
-                "No notes found. Ghost saves findings using the notes tool during testing."
+                "No notes found. PentestAgent saves findings using the notes tool during testing."
             )
             return
 
@@ -1791,8 +1791,8 @@ def run_tui(
     model: str = None,
     use_docker: bool = False,
 ):
-    """Run the GhostCrew TUI"""
-    app = GhostCrewTUI(
+    """Run the PentestAgent TUI"""
+    app = PentestAgentTUI(
         target=target,
         model=model,
         use_docker=use_docker,

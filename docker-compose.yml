@@ -1,26 +1,26 @@
 services:
-  ghostcrew:
+  pentestagent:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ghostcrew
+    container_name: pentestagent
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - GHOSTCREW_MODEL=${GHOSTCREW_MODEL}
-      - GHOSTCREW_DEBUG=${GHOSTCREW_DEBUG:-false}
+      - PENTESTAGENT_MODEL=${PENTESTAGENT_MODEL}
+      - PENTESTAGENT_DEBUG=${PENTESTAGENT_DEBUG:-false}
     volumes:
       - ./loot:/app/loot
     networks:
-      - ghostcrew-net
+      - pentestagent-net
     stdin_open: true
     tty: true
 
-  ghostcrew-kali:
+  pentestagent-kali:
     build:
       context: .
       dockerfile: Dockerfile.kali
-    container_name: ghostcrew-kali
+    container_name: pentestagent-kali
     privileged: true  # Required for VPN and some tools
     cap_add:
       - NET_ADMIN
@@ -28,18 +28,18 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - GHOSTCREW_MODEL=${GHOSTCREW_MODEL}
+      - PENTESTAGENT_MODEL=${PENTESTAGENT_MODEL}
       - ENABLE_TOR=${ENABLE_TOR:-false}
       - INIT_METASPLOIT=${INIT_METASPLOIT:-false}
     volumes:
       - ./loot:/app/loot
     networks:
-      - ghostcrew-net
+      - pentestagent-net
     stdin_open: true
     tty: true
     profiles:
       - kali
 
 networks:
-  ghostcrew-net:
+  pentestagent-net:
     driver: bridge

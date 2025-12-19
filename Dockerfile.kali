@@ -1,10 +1,10 @@
-# GhostCrew Kali Linux Image
+# PentestAgent Kali Linux Image
 # Full penetration testing environment
 
 FROM kalilinux/kali-rolling
 
 LABEL maintainer="Masic"
-LABEL description="GhostCrew with Kali Linux tools"
+LABEL description="PentestAgent with Kali Linux tools"
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -82,4 +82,4 @@ COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python3", "-m", "ghostcrew"]
+CMD ["python3", "-m", "pentestagent"]

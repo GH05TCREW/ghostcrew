@@ -1,7 +1,7 @@
-﻿# GhostCrew PowerShell Setup Script
+﻿# PentestAgent PowerShell Setup Script
 
 Write-Host "=================================================================="
-Write-Host "                        GHOSTCREW"
+Write-Host "                        PENTESTAGENT"
 Write-Host "                  AI Penetration Testing"
 Write-Host "=================================================================="
 Write-Host ""
@@ -57,7 +57,7 @@ Write-Host "[OK] Playwright browsers installed"
 if (-not (Test-Path ".env")) {
     Write-Host "Creating .env file..."
     @"
-# GhostCrew Configuration
+# PentestAgent Configuration
 # Add your API keys here
 
 # OpenAI API Key (required for GPT models)
@@ -67,13 +67,13 @@ OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 
 # Model Configuration
-GHOSTCREW_MODEL=gpt-5
+PENTESTAGENT_MODEL=gpt-5
 
 # Debug Mode
-GHOSTCREW_DEBUG=false
+PENTESTAGENT_DEBUG=false
 
 # Max Iterations
-GHOSTCREW_MAX_ITERATIONS=50
+PENTESTAGENT_MAX_ITERATIONS=50
 "@ | Set-Content -Path ".env" -Encoding UTF8
     Write-Host "[OK] .env file created"
     Write-Host "[!] Please edit .env and add your API keys"
@@ -89,5 +89,5 @@ Write-Host ""
 Write-Host "To get started:"
 Write-Host "  1. Edit .env and add your API keys"
 Write-Host "  2. Activate: .\venv\Scripts\Activate.ps1"
-Write-Host "  3. Run: ghostcrew or python -m ghostcrew"
+Write-Host "  3. Run: pentestagent or python -m pentestagent"
 Write-Host ""

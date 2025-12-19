@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 from unittest.mock import patch
 
-from ghostcrew.knowledge.rag import RAGEngine, Document
+from pentestagent.knowledge.rag import RAGEngine, Document
 
 
 class TestDocument:

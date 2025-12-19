@@ -1,4 +1,4 @@
-"""Non-interactive CLI mode for GhostCrew."""
+"""Non-interactive CLI mode for PentestAgent."""
 
 import asyncio
 import time
@@ -12,12 +12,12 @@ from rich.text import Text
 
 console = Console()
 
-# Ghost theme colors (matching TUI)
-GHOST_PRIMARY = "#d4d4d4"  # light gray - primary text
-GHOST_SECONDARY = "#9a9a9a"  # medium gray - secondary text
-GHOST_DIM = "#6b6b6b"  # dim gray - muted text
-GHOST_BORDER = "#3a3a3a"  # dark gray - borders
-GHOST_ACCENT = "#7a7a7a"  # accent gray
+# PA theme colors (matching TUI)
+PA_PRIMARY = "#d4d4d4"  # light gray - primary text
+PA_SECONDARY = "#9a9a9a"  # medium gray - secondary text
+PA_DIM = "#6b6b6b"  # dim gray - muted text
+PA_BORDER = "#3a3a3a"  # dark gray - borders
+PA_ACCENT = "#7a7a7a"  # accent gray
 
 
 async def run_cli(
@@ -30,7 +30,7 @@ async def run_cli(
     mode: str = "agent",
 ):
     """
-    Run GhostCrew in non-interactive mode.
+    Run PentestAgent in non-interactive mode.
 
     Args:
         target: Target to test
@@ -41,7 +41,7 @@ async def run_cli(
         use_docker: Run tools in Docker container
         mode: Execution mode ("agent" or "crew")
     """
-    from ..agents.ghostcrew_agent import GhostCrewAgent
+    from ..agents.pa_agent import PentestAgentAgent
     from ..knowledge import RAGEngine
     from ..llm import LLM
     from ..runtime.docker_runtime import DockerRuntime
@@ -50,27 +50,27 @@ async def run_cli(
 
     # Startup panel
     start_text = Text()
-    start_text.append("GHOSTCREW", style=f"bold {GHOST_PRIMARY}")
-    start_text.append(" - Non-interactive Mode\n\n", style=GHOST_DIM)
-    start_text.append("Target: ", style=GHOST_SECONDARY)
-    start_text.append(f"{target}\n", style=GHOST_PRIMARY)
-    start_text.append("Model: ", style=GHOST_SECONDARY)
-    start_text.append(f"{model}\n", style=GHOST_PRIMARY)
-    start_text.append("Mode: ", style=GHOST_SECONDARY)
-    start_text.append(f"{mode.title()}\n", style=GHOST_PRIMARY)
-    start_text.append("Runtime: ", style=GHOST_SECONDARY)
-    start_text.append(f"{'Docker' if use_docker else 'Local'}\n", style=GHOST_PRIMARY)
-    start_text.append("Max loops: ", style=GHOST_SECONDARY)
-    start_text.append(f"{max_loops}\n", style=GHOST_PRIMARY)
+    start_text.append("PENTESTAGENT", style=f"bold {PA_PRIMARY}")
+    start_text.append(" - Non-interactive Mode\n\n", style=PA_DIM)
+    start_text.append("Target: ", style=PA_SECONDARY)
+    start_text.append(f"{target}\n", style=PA_PRIMARY)
+    start_text.append("Model: ", style=PA_SECONDARY)
+    start_text.append(f"{model}\n", style=PA_PRIMARY)
+    start_text.append("Mode: ", style=PA_SECONDARY)
+    start_text.append(f"{mode.title()}\n", style=PA_PRIMARY)
+    start_text.append("Runtime: ", style=PA_SECONDARY)
+    start_text.append(f"{'Docker' if use_docker else 'Local'}\n", style=PA_PRIMARY)
+    start_text.append("Max loops: ", style=PA_SECONDARY)
+    start_text.append(f"{max_loops}\n", style=PA_PRIMARY)
 
     task_msg = task or f"Perform a penetration test on {target}"
-    start_text.append("Task: ", style=GHOST_SECONDARY)
-    start_text.append(task_msg, style=GHOST_PRIMARY)
+    start_text.append("Task: ", style=PA_SECONDARY)
+    start_text.append(task_msg, style=PA_PRIMARY)
 
     console.print()
     console.print(
         Panel(
-            start_text, title=f"[{GHOST_SECONDARY}]Starting", border_style=GHOST_BORDER
+            start_text, title=f"[{PA_SECONDARY}]Starting", border_style=PA_BORDER
         )
     )
     console.print()
@@ -99,13 +99,13 @@ async def run_cli(
                 register_tool_instance(tool)
             mcp_count = len(mcp_tools)
             if mcp_count > 0:
-                console.print(f"[{GHOST_DIM}]Loaded {mcp_count} MCP tools[/]")
+                console.print(f"[{PA_DIM}]Loaded {mcp_count} MCP tools[/]")
     except Exception:
         pass  # MCP is optional, continue without it
 
     # Initialize runtime - Docker or Local
     if use_docker:
-        console.print(f"[{GHOST_DIM}]Starting Docker container...[/]")
+        console.print(f"[{PA_DIM}]Starting Docker container...[/]")
         runtime = DockerRuntime(mcp_manager=mcp_manager)
     else:
         runtime = LocalRuntime(mcp_manager=mcp_manager)
@@ -127,11 +127,11 @@ async def run_cli(
     last_msg_intermediate = False  # Track if previous message was intermediate (to avoid double counting tokens)
     stopped_reason = None
 
-    def print_status(msg: str, style: str = GHOST_DIM):
+    def print_status(msg: str, style: str = PA_DIM):
         elapsed = int(time.time() - start_time)
         mins, secs = divmod(elapsed, 60)
         timestamp = f"[{mins:02d}:{secs:02d}]"
-        console.print(f"[{GHOST_DIM}]{timestamp}[/] [{style}]{msg}[/]")
+        console.print(f"[{PA_DIM}]{timestamp}[/] [{style}]{msg}[/]")
 
     def display_message(content: str, title: str) -> bool:
         """Display a message panel if it hasn't been shown yet."""
@@ -141,8 +141,8 @@ async def run_cli(
             console.print(
                 Panel(
                     Markdown(content),
-                    title=f"[{GHOST_PRIMARY}]{title}",
-                    border_style=GHOST_BORDER,
+                    title=f"[{PA_PRIMARY}]{title}",
+                    border_style=PA_BORDER,
                 )
             )
             console.print()
@@ -160,7 +160,7 @@ async def run_cli(
             status_text = f"Interrupted ({stopped_reason})"
 
         lines = [
-            "# GhostCrew Penetration Test Report",
+            "# PentestAgent Penetration Test Report",
             "",
             "## Executive Summary",
             "",
@@ -267,7 +267,7 @@ async def run_cli(
             [
                 "---",
                 "",
-                f"*Report generated by GhostCrew on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*",
+                f"*Report generated by PentestAgent on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*",
             ]
         )
 
@@ -291,14 +291,14 @@ async def run_cli(
 
         content = generate_report()
         report_path.write_text(content, encoding="utf-8")
-        console.print(f"[{GHOST_SECONDARY}]Report saved: {report_path}[/]")
+        console.print(f"[{PA_SECONDARY}]Report saved: {report_path}[/]")
 
     async def generate_summary():
         """Ask the LLM to summarize findings when stopped early."""
         if not tool_log:
             return None
 
-        print_status("Generating summary...", GHOST_SECONDARY)
+        print_status("Generating summary...", PA_SECONDARY)
 
         # Build context from tool results (use full results, not truncated)
         context_lines = ["Summarize the penetration test findings so far:\n"]
@@ -345,28 +345,28 @@ async def run_cli(
             status = f"STOPPED ({stopped_reason})"
 
         final_text = Text()
-        final_text.append(f"{status}\n\n", style=f"bold {GHOST_PRIMARY}")
-        final_text.append("Duration: ", style=GHOST_DIM)
-        final_text.append(f"{mins}m {secs}s\n", style=GHOST_SECONDARY)
-        final_text.append("Loops: ", style=GHOST_DIM)
-        final_text.append(f"{iteration}/{max_loops}\n", style=GHOST_SECONDARY)
-        final_text.append("Tools: ", style=GHOST_DIM)
-        final_text.append(f"{tool_count}\n", style=GHOST_SECONDARY)
+        final_text.append(f"{status}\n\n", style=f"bold {PA_PRIMARY}")
+        final_text.append("Duration: ", style=PA_DIM)
+        final_text.append(f"{mins}m {secs}s\n", style=PA_SECONDARY)
+        final_text.append("Loops: ", style=PA_DIM)
+        final_text.append(f"{iteration}/{max_loops}\n", style=PA_SECONDARY)
+        final_text.append("Tools: ", style=PA_DIM)
+        final_text.append(f"{tool_count}\n", style=PA_SECONDARY)
 
         if total_tokens > 0:
-            final_text.append("Tokens: ", style=GHOST_DIM)
-            final_text.append(f"{total_tokens:,}\n", style=GHOST_SECONDARY)
+            final_text.append("Tokens: ", style=PA_DIM)
+            final_text.append(f"{total_tokens:,}\n", style=PA_SECONDARY)
 
         if findings_count > 0:
-            final_text.append("Findings: ", style=GHOST_DIM)
-            final_text.append(f"{findings_count}", style=GHOST_SECONDARY)
+            final_text.append("Findings: ", style=PA_DIM)
+            final_text.append(f"{findings_count}", style=PA_SECONDARY)
 
         console.print()
         console.print(
             Panel(
                 final_text,
-                title=f"[{GHOST_SECONDARY}]{title}",
-                border_style=GHOST_BORDER,
+                title=f"[{PA_SECONDARY}]{title}",
+                border_style=PA_BORDER,
             )
         )
 
@@ -388,13 +388,13 @@ async def run_cli(
 
                 if event_type == "spawn":
                     task = data.get("task", "")
-                    print_status(f"Spawned worker {worker_id}: {task}", GHOST_ACCENT)
+                    print_status(f"Spawned worker {worker_id}: {task}", PA_ACCENT)
 
                 elif event_type == "tool":
                     tool_name = data.get("tool", "unknown")
                     tool_count += 1
                     print_status(
-                        f"Worker {worker_id} using tool: {tool_name}", GHOST_DIM
+                        f"Worker {worker_id} using tool: {tool_name}", PA_DIM
                     )
 
                     # Log tool usage (limited info available from event)
@@ -429,7 +429,7 @@ async def run_cli(
 
                 elif event_type == "status":
                     status = data.get("status", "")
-                    print_status(f"Worker {worker_id} status: {status}", GHOST_DIM)
+                    print_status(f"Worker {worker_id} status: {status}", PA_DIM)
 
                 elif event_type == "warning":
                     reason = data.get("reason", "unknown")
@@ -456,17 +456,17 @@ async def run_cli(
                 phase = update.get("phase", "")
 
                 if phase == "starting":
-                    print_status("Crew orchestrator starting...", GHOST_PRIMARY)
+                    print_status("Crew orchestrator starting...", PA_PRIMARY)
 
                 elif phase == "thinking":
                     content = update.get("content", "")
                     if content:
-                        display_message(content, "GhostCrew Plan")
+                        display_message(content, "PentestAgent Plan")
 
                 elif phase == "tool_call":
                     tool = update.get("tool", "")
                     args = update.get("args", {})
-                    print_status(f"Orchestrator calling: {tool}", GHOST_ACCENT)
+                    print_status(f"Orchestrator calling: {tool}", PA_ACCENT)
 
                 elif phase == "complete":
                     report_content = update.get("report", "")
@@ -487,7 +487,7 @@ async def run_cli(
 
         else:
             # Default Agent Mode
-            agent = GhostCrewAgent(
+            agent = PentestAgentAgent(
                 llm=llm,
                 tools=tools,
                 runtime=runtime,
@@ -611,39 +611,39 @@ async def run_cli(
 
                         # Metasploit-style output with better spacing
                         console.print()  # Blank line before each tool
-                        print_status(f"$ {name} ({tool_count})", GHOST_ACCENT)
+                        print_status(f"$ {name} ({tool_count})", PA_ACCENT)
 
                         # Show command/args on separate indented line (truncated for display)
                         if command_text:
                             display_cmd = command_text[:80]
                             if len(command_text) > 80:
                                 display_cmd += "..."
-                            console.print(f"         [{GHOST_DIM}]{display_cmd}[/]")
+                            console.print(f"         [{PA_DIM}]{display_cmd}[/]")
 
                         # Show result on separate line with status indicator
                         if response.tool_results and i < len(response.tool_results):
                             tr = response.tool_results[i]
                             if tr.error:
                                 console.print(
-                                    f"         [{GHOST_DIM}][!] {tr.error[:100]}[/]"
+                                    f"         [{PA_DIM}][!] {tr.error[:100]}[/]"
                                 )
                             elif tr.result:
                                 # Show exit code or brief result
                                 result_line = tr.result[:100].replace("\n", " ")
                                 if exit_code == 0 or "success" in result_line.lower():
-                                    console.print(f"         [{GHOST_DIM}][+] OK[/]")
+                                    console.print(f"         [{PA_DIM}][+] OK[/]")
                                 elif exit_code is not None and exit_code != 0:
                                     console.print(
-                                        f"         [{GHOST_DIM}][-] Exit {exit_code}[/]"
+                                        f"         [{PA_DIM}][-] Exit {exit_code}[/]"
                                     )
                                 else:
                                     console.print(
-                                        f"         [{GHOST_DIM}][*] {result_line[:60]}...[/]"
+                                        f"         [{PA_DIM}][*] {result_line[:60]}...[/]"
                                     )
 
                 # Print assistant content immediately (analysis/findings)
                 if response.content:
-                    if display_message(response.content, "GhostCrew"):
+                    if display_message(response.content, "PentestAgent"):
                         messages.append(response.content)
 
                 # Check max loops limit

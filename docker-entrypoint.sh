@@ -1,5 +1,5 @@
 #!/bin/bash
-# GhostCrew Docker Entrypoint
+# PentestAgent Docker Entrypoint
 
 set -e
 
@@ -9,7 +9,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${GREEN}🔧 GhostCrew Container Starting...${NC}"
+echo -e "${GREEN}🔧 PentestAgent Container Starting...${NC}"
 
 # Start VPN if config provided
 if [ -f "/vpn/config.ovpn" ]; then
@@ -41,10 +41,10 @@ fi
 # Create output directory with timestamp
 OUTPUT_DIR="/output/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
-export GHOSTCREW_OUTPUT_DIR="$OUTPUT_DIR"
+export PENTESTAGENT_OUTPUT_DIR="$OUTPUT_DIR"
 
 echo -e "${GREEN}📁 Output directory: $OUTPUT_DIR${NC}"
-echo -e "${GREEN}🚀 Starting GhostCrew...${NC}"
+echo -e "${GREEN}🚀 Starting PentestAgent...${NC}"
 
 # Execute the main command
 exec "$@"

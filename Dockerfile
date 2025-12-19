@@ -1,9 +1,9 @@
-# GhostCrew - AI Penetration Testing Agent
+# PentestAgent - AI Penetration Testing Agent
 # Base image with common tools
 
 FROM python:3.11-slim
 
-LABEL maintainer="GhostCrew"
+LABEL maintainer="PentestAgent"
 LABEL description="AI penetration testing"
 
 # Set environment variables
@@ -50,14 +50,14 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY . .
 
 # Create non-root user for security
-RUN useradd -m -s /bin/bash ghostcrew && \
-    chown -R ghostcrew:ghostcrew /app
+RUN useradd -m -s /bin/bash pentestagent && \
+    chown -R pentestagent:pentestagent /app
 
 # Switch to non-root user (can switch back for privileged operations)
-USER ghostcrew
+USER pentestagent
 
 # Expose any needed ports
 EXPOSE 8080
 
 # Default command
-CMD ["python", "-m", "ghostcrew"]
+CMD ["python", "-m", "pentestagent"]

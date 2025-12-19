@@ -3,7 +3,7 @@
 import pytest
 from datetime import datetime
 
-from ghostcrew.agents.state import AgentState, AgentStateManager, StateTransition
+from pentestagent.agents.state import AgentState, AgentStateManager, StateTransition
 
 
 class TestAgentState:

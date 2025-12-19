@@ -1,4 +1,4 @@
-"""Test fixtures for GhostCrew tests."""
+"""Test fixtures for PentestAgent tests."""
 
 import pytest
 import asyncio
@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Generator, AsyncGenerator
 from unittest.mock import MagicMock, AsyncMock
 
-from ghostcrew.config import Settings
-from ghostcrew.agents.state import AgentState, AgentStateManager
-from ghostcrew.tools import get_all_tools, Tool, ToolSchema
+from pentestagent.config import Settings
+from pentestagent.agents.state import AgentState, AgentStateManager
+from pentestagent.tools import get_all_tools, Tool, ToolSchema
 
 
 @pytest.fixture

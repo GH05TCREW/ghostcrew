@@ -6,7 +6,7 @@ import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from ghostcrew.tools.notes import notes, set_notes_file, get_all_notes, _notes
+from pentestagent.tools.notes import notes, set_notes_file, get_all_notes, _notes
 
 # We need to reset the global state for tests
 @pytest.fixture(autouse=True)
@@ -18,7 +18,7 @@ def reset_notes_state(tmp_path):
     
     # Clear the global dictionary (it's imported from the module)
     # We need to clear the actual dictionary object in the module
-    from ghostcrew.tools.notes import _notes
+    from pentestagent.tools.notes import _notes
     _notes.clear()
     
     yield
@@ -148,7 +148,7 @@ async def test_legacy_migration(tmp_path):
     set_notes_file(legacy_file)
     
     # Trigger load (get_all_notes calls _load_notes_unlocked if empty, but we need to clear first)
-    from ghostcrew.tools.notes import _notes
+    from pentestagent.tools.notes import _notes
     _notes.clear()
     
     all_notes = await get_all_notes()

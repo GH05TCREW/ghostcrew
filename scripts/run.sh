@@ -1,5 +1,5 @@
 #!/bin/bash
-# GhostCrew Run Script
+# PentestAgent Run Script
 
 set -e
 
@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --help)
-            echo "GhostCrew - AI Penetration Testing"
+            echo "PentestAgent - AI Penetration Testing"
             echo ""
             echo "Usage: run.sh [options]"
             echo ""
@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Build command
-CMD="python -m ghostcrew"
+CMD="python -m pentestagent"
 
 if [ "$MODE" = "tui" ]; then
     CMD="$CMD --tui"
@@ -56,6 +56,6 @@ if [ -n "$TARGET" ]; then
     CMD="$CMD --target $TARGET"
 fi
 
-# Run GhostCrew
-echo "Starting GhostCrew..."
+# Run PentestAgent
+echo "Starting PentestAgent..."
 $CMD

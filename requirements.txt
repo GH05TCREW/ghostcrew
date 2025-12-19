@@ -1,4 +1,4 @@
-# GhostCrew Dependencies
+# PentestAgent Dependencies
 
 # Core LLM
 litellm>=1.40.0

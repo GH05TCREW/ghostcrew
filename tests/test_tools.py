@@ -2,7 +2,7 @@
 
 import pytest
 
-from ghostcrew.tools import (
+from pentestagent.tools import (
     Tool, ToolSchema, register_tool, get_all_tools, get_tool,
     enable_tool, disable_tool, get_tool_names
 )

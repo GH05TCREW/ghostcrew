@@ -2,7 +2,7 @@
 
 import pytest
 import networkx as nx
-from ghostcrew.knowledge.graph import ShadowGraph, GraphNode, GraphEdge
+from pentestagent.knowledge.graph import ShadowGraph, GraphNode, GraphEdge
 
 class TestShadowGraph:
     """Tests for ShadowGraph class."""

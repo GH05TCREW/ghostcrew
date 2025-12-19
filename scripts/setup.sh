@@ -1,10 +1,10 @@
 #!/bin/bash
-# GhostCrew Setup Script
+# PentestAgent Setup Script
 
 set -e
 
 echo "=================================================================="
-echo "                        GHOSTCREW"
+echo "                        PENTESTAGENT"
 echo "                  AI Penetration Testing"
 echo "=================================================================="
 echo ""
@@ -51,7 +51,7 @@ echo "[OK] Playwright browsers installed"
 if [ ! -f ".env" ]; then
     echo "Creating .env file..."
     cat > .env << EOF
-# GhostCrew Configuration
+# PentestAgent Configuration
 # Add your API keys here
 
 # OpenAI API Key (required for GPT models)
@@ -61,13 +61,13 @@ OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 
 # Model Configuration
-GHOSTCREW_MODEL=gpt-5
+PENTESTAGENT_MODEL=gpt-5
 
 # Debug Mode
-GHOSTCREW_DEBUG=false
+PENTESTAGENT_DEBUG=false
 
 # Max Iterations
-GHOSTCREW_MAX_ITERATIONS=50
+PENTESTAGENT_MAX_ITERATIONS=50
 EOF
     echo "[OK] .env file created"
     echo "[!] Please edit .env and add your API keys"
@@ -84,10 +84,10 @@ echo ""
 echo "To get started:"
 echo "  1. Edit .env and add your API keys"
 echo "  2. Activate the virtual environment: source venv/bin/activate"
-echo "  3. Run GhostCrew: ghostcrew or python -m ghostcrew"
+echo "  3. Run PentestAgent: pentestagent or python -m pentestagent"
 echo ""
 echo "For Docker usage:"
-echo "  docker-compose up ghostcrew"
-echo "  docker-compose --profile kali up ghostcrew-kali"
+echo "  docker-compose up pentestagent"
+echo "  docker-compose --profile kali up pentestagent-kali"
 echo ""
 echo "=================================================================="
